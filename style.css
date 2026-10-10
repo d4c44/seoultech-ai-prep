@@ -299,7 +299,57 @@ body {
   border-radius: 999px;
   padding: 2px 8px;
 }
-.q__marks { margin-left: auto; display: flex; gap: 7px; }
+.q__marks { display: flex; gap: 7px; }
+
+/* ---------- reveal ответа ---------- */
+.ansbtn {
+  font-family: var(--sans);
+  font-size: 12.5px; font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  border-bottom: 1px dashed transparent;
+  transition: border-color 0.15s;
+}
+.ansbtn:hover { border-bottom-color: var(--accent); }
+.ansbtn.open { color: var(--ink-soft); }
+
+.answrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.45s var(--ease);
+}
+.answrap.open { grid-template-rows: 1fr; }
+.ansbox { overflow: hidden; min-height: 0; }
+.ansinner {
+  margin-top: 10px;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  padding: 10px 14px;
+  border-radius: 0 8px 8px 0;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.ansinner__label {
+  font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.ans-placeholder { color: var(--ink-faint); font-style: italic; }
+
+/* ---------- заголовок модуля ---------- */
+.modhead {
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 12px 2px 6px;
+  margin-top: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.exam-reveal { margin-bottom: 18px; }
 
 .markbtn {
   font-family: var(--sans);
