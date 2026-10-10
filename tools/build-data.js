@@ -25,12 +25,12 @@ function flush() {
   if (!pending || !current) return;
   const text = pending.text.trim();
   if (text) {
-    // убрать теги <question> <question2> <question3>
+    // убрать теги <question> <question2> <question3> — цифра = количество ответов
     const tagMatch = text.match(/^<(question\d*)>/);
-    let block;
+    let answers = 1;
     let clean = text;
     if (tagMatch) {
-      block = parseInt(tagMatch[1].replace('question', ''), 10) || undefined;
+      answers = parseInt(tagMatch[1].replace('question', ''), 10) || 1;
       clean = text.replace(/^<question\d*>/, '');
     }
     clean = clean.replace(/\s+/g, ' ').trim();
@@ -43,7 +43,7 @@ function flush() {
       if (!ru) ru = undefined;
     }
     if (!kz) kz = ru; // защита от пустой KZ части
-    current.questions.push({ n: current.questions.length + 1, kz, ru, block });
+    current.questions.push({ n: current.questions.length + 1, kz, ru, answers });
   }
   pending = null;
 }
@@ -56,7 +56,7 @@ for (const line of lines) {
   const headerMatch = SUBJECTS_META.find(m => m.match.test(trimmed) && /сұрақтар|Вопросы/.test(trimmed));
   if (headerMatch) {
     flush();
-    current = { slug: headerMatch.slug, name: headerMatch.name, ruName: headerMatch.ruName, icon: headerMatch.icon, questions: [] };
+    current = { slug: headerMatch.slug, name: headerMatch.name, ruName: headerMatch.ruName, questions: [] };
     subjects.push(current);
     continue;
   }
@@ -83,6 +83,16 @@ for (const s of subjects) {
   if (!s.questions.length) throw new Error(`Нет вопросов: ${s.slug}`);
 }
 
+// Ручные аннотации «N ответов» для вопросов, где количество
+// читается из текста (Мәдениеттану: екеуін белгіле / үшеуін белгіле / екі бейне)
+const ANNOTATIONS = {
+  culturology: { 13: 2, 15: 2, 21: 3, 22: 3 },
+};
+for (const s of subjects) {
+  const ann = ANNOTATIONS[s.slug] || {};
+  for (const q of s.questions) if (ann[q.n]) q.answers = ann[q.n];
+}
+
 const out = `// Сгенерировано: node tools/build-data.js — не редактировать руками
 window.SUBJECTS = ${JSON.stringify(subjects, null, 2)};
 `;
@@ -90,6 +100,7 @@ fs.writeFileSync(path.join(__dirname, '..', 'data.js'), out, 'utf8');
 
 for (const s of subjects) {
   const withRu = s.questions.filter(q => q.ru).length;
-  console.log(`${s.icon} ${s.name} (${s.ruName}): ${s.questions.length} вопросов, RU-перевод: ${withRu}`);
+  const multi = s.questions.filter(q => q.answers > 1).length;
+  console.log(`${s.name} (${s.ruName}): ${s.questions.length} вопросов, RU-перевод: ${withRu}, многоответных: ${multi}`);
 }
 console.log(`Итого: ${subjects.reduce((a, s) => a + s.questions.length, 0)} вопросов`);
